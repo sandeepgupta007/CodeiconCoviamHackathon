@@ -25,7 +25,7 @@ ONE_INTERVIEW_TIME = 1
 CHROMOSOME_SIZE = 0
 POPULATION_SIZE = 100
 RATE = 0.1
-NO_OF_ITERATION = 100
+NO_OF_ITERATION = 1000
 TOTAL_SLOTS_OF_HR = 0
 
 # To generate initial Population
@@ -54,7 +54,7 @@ def DNA():
 	CHROMOSOME_SIZE = 0
 	chromosome = {}
 	# print (DAYS)
-	for i in range(int((DAYS+1)*13)):
+	for i in range(int((DAYS+1)*13*ONE_INTERVIEW_TIME)):
 		chromosome[i] = []
 	# print (chromosome)
 	#distributing the HR over a time period.
@@ -66,13 +66,13 @@ def DNA():
 			hrPairCandidate.append(key)
 			hrPairCandidate.append(-1)
 			# print ((day-1)*13 + fromTime)
-			eachHourChromosome = chromosome[(day-1)*13 + fromTime]
+			eachHourChromosome = chromosome[(day-1)*13*ONE_INTERVIEW_TIME + fromTime]
 			eachHourChromosome.append(hrPairCandidate)
 			chromosome[(day-1)*13 + fromTime] = eachHourChromosome
 
 	# For memory efficiency - No HR available for this time slot.
 	# print (chromosome)
-	for i in range((DAYS+1)*13):
+	for i in range(int((DAYS+1)*13*ONE_INTERVIEW_TIME)):
 		if(len(chromosome[i]) == 0):
 			chromosome.pop(i,None)
 		else:
@@ -191,6 +191,16 @@ def scoringAccordingLeastDays(chromosome):
 			score += 10
 	return score
 
+# Scoring according to best day for the candidate
+def scoringAccordingBestDayCandidate(chromosome):
+	score = 0
+	for key in chromosome:
+		for keyInChromosome in range(len(chromosome[key])):
+			if(chromosome[key][keyInChromosome][1] != -1):
+				if(key//13 == int(CANDIDATE[chromosome[key][keyInChromosome][1]][4])):
+					score += 5
+	return score
+
 
 #fitness of full population
 def fitnessAll(population):
@@ -211,6 +221,7 @@ def fitness(chromosome):
 
 	score += scoringAccordingInterviewDistribution(chromosome)
 	score += scoringAccordingLeastDays(chromosome)
+	score += scoringAccordingBestDayCandidate(chromosome)
 	return score
 
 # One point Crossover
@@ -256,6 +267,9 @@ def crossover(parentA,parentB):
 			parentB[timeOfParentB][keyOfParentB][1] = parentB[timeOfParentA][keyOfParentA][1]
 			parentB[timeOfParentA][keyOfParentA][1] = temp
 
+	if(check(parentA) == False):
+		print (' Because of crossover')
+		exit()
 	# print (str(parentA) + ' ' + str(parentB))
 	return (parentA,parentB)
 
@@ -280,7 +294,7 @@ def selection(cummulativeFitness):
 	return index
 
 
-def nextGeneration(populatio,fitness):
+def nextGeneration(population,fitness):
 	cummulativeFitness = listOfcommulativeFitness(fitness)
 	# half of population because each time 2 children will be generated with two parents
 	# print (cummulativeFitness)
@@ -316,6 +330,20 @@ def findBestFitness(fitness):
 			maxIndex = i
 	return (maxScore,maxIndex)
 
+def check(chromosome):
+	notAssigned = []
+	assigned = []
+	
+	for key in chromosome:
+		for j in range(len(chromosome[key])):
+			if(chromosome[key][j][1] == -1):
+				notAssigned.append([key,j])
+			else:
+				assigned.append([key,j])
+	if(len(assigned) == CANDIDATE_COUNT):
+		return True
+	return False
+
 ''' 
 	For the purpose of mutation for a chromosome.
 	randomly select the amount of not assigned HR slot with assigned HR slot to be swapped within the range of max(1,CHROMOSOME_SIZE*RATE)
@@ -323,39 +351,47 @@ def findBestFitness(fitness):
 	swaping them afterwards
 '''
 def mutation(chromosome):
-	rateRange = max(1,int(CHROMOSOME_SIZE*RATE))
+	rateRange = max(1,int(CANDIDATE_COUNT*RATE))
 	rate = random.randrange(0,rateRange,1)
 	swappedListOfCandidates = {}
+	notAssigned = []
+	assigned = []
+	
+	for key in chromosome:
+		for j in range(len(chromosome[key])):
+			if(chromosome[key][j][1] == -1):
+				notAssigned.append([key,j])
+			else:
+				assigned.append([key,j])
+	# print (len(assigned))
+	# print (len(notAssigned))
+	if(len(assigned) == 0 or len(notAssigned) == 0):
+		return chromosome
+
 	for i in range(rateRange):
-		toBeSwapedKey = -1
-		toBeSwapedj = -1
+		toSwap = random.choice(notAssigned)
+		toBeSwapedKey = toSwap[0]
+		toBeSwapedj = toSwap[1]
 
-		valueKey = -1
-		valuej = -1 
+		valueSwap = random.choice(assigned)
+		valueKey = valueSwap[0]
+		valuej = valueSwap[1]
 
-		for key in chromosome:
-			for j in range(len(chromosome[key])):
-				if(chromosome[key][j][1] == -1):
-					toBeSwapedKey = key
-					toBeSwapedj = j
-				else:
-					if(chromosome[key][j][1] in swappedListOfCandidates):
-						pass
-					else:
-						valueKey = key
-						valuej = j
-
+		if(chromosome[valueKey][valuej][1] not in swappedListOfCandidates):
 			if(toBeSwapedKey != -1 and valueKey != -1):
 				swappedListOfCandidates[chromosome[valueKey][valuej][1]] = 1
+				temp = chromosome[toBeSwapedKey][toBeSwapedj][1]
 				chromosome[toBeSwapedKey][toBeSwapedj][1] = chromosome[valueKey][valuej][1]
-				chromosome[valueKey][valuej][1] = -1
-				break
+				chromosome[valueKey][valuej][1] = temp
+	if(check(chromosome) == False):
+		print ('Because of mutation')
+		exit()
 	return chromosome
 
 ''' 
 	Taking input from console
 '''
-def main():	
+def mainInput():	
 	# For using global vairable inside function
 	global CANDIDATE
 	global CANDIDATE_COUNT
@@ -364,14 +400,26 @@ def main():
 	global DAYS
 	global RATE
 	global TOTAL_SLOTS_OF_HR
+	global ONE_INTERVIEW_TIME
+	# number of dates interview drive is schedule to continue
+	print ('Enter the number of Days interview drive is supposed to continue : ',end='')
+	DAYS = int(input())
+
+	print ('Enter the estimated time for Interview : ',end='')
+	interviewTime = float(input())
+	if(interviewTime != 0):
+		ONE_INTERVIEW_TIME = 1.0/float(interviewTime)
+	else:
+		ONE_INTERVIEW_TIME = 1
+
 
 	print ('Enter the number of candidates : ',end='')
 	CANDIDATE_COUNT = int(input())
 
-	print ('Enter the Candidates priorites: (M/A/E/N)')
+	print ('Enter the Candidates priorites and prefered date: (M/A/E/N)')
 	for i in range(CANDIDATE_COUNT):
 		availableTime = []
-		a1 ,a2 ,a3, a4 = map(str,input().split())
+		a1 ,a2 ,a3, a4, a5 = map(str,input().split())
 		# for j in range(4):
 		# 	a = input()
 		# 	availableTime.append(a)
@@ -379,6 +427,7 @@ def main():
 		availableTime.append(a2)
 		availableTime.append(a3)
 		availableTime.append(a4)
+		availableTime.append(a5)
 		CANDIDATE[i] = availableTime
 
 	print ('Enter the number of HR: ',end='')
@@ -406,46 +455,52 @@ def main():
 		# 	
 		HR[i] = timeShiftAvailable
 
-	DAYS = int(input())
 	
 	# print
 	print('')
+	print('Days :' + str(DAYS))
 	print('candidate :' + str(CANDIDATE))
 	print('HR :' + str(HR))
-	print('Days :' + str(DAYS))
+	print (' : ' + str())
+
+
+def AlgorithmToGenerateInterviews():
+	population = generatePopulation()		 	# to generate Population
+	all_time_best_fitness = -1
+	all_time_best_chromosome = []
+	# Generating population and finding the max possible fitness value in a generation
+	for i in range(NO_OF_ITERATION):
+		fitnessScore = fitnessAll(population) # Calculate fitness of population
+		# print (fitnessScore)
+		# print (population)
+		bestFitness = findBestFitness(fitnessScore)
+		if(all_time_best_fitness < bestFitness[0]):
+			all_time_best_fitness = bestFitness[0]
+			all_time_best_chromosome = population[bestFitness[1]]
+		print ('Generation : ' + str(i) + ' Best fitness value'  + str(bestFitness) + ' Chromosome :' + str(population[bestFitness[1]]))
+		population = nextGeneration(population,fitnessScore)
+
+	print ('All time best fitness over the generation : ' + str(all_time_best_fitness))
+	print ('All time best chromosome : ' + str(all_time_best_chromosome))
+
+	day = {}
+	for key in all_time_best_chromosome:
+		c = []
+		day[key//13] = c
+
+	for key in all_time_best_chromosome:
+		for keyInChromosome in range(len(all_time_best_chromosome[key])):
+			c = day[key//13]
+			if(all_time_best_chromosome[key][keyInChromosome][1] != -1):
+				c.append((key%13,all_time_best_chromosome[key][keyInChromosome]))
+				day[key//13] = c
+
+	print (day)
+
 
 # if ( __name__ == "main"):
 
-main() # to take the input
-population = generatePopulation() # to generate Population
-# print(population)
 
-all_time_best_fitness = -1
-all_time_best_chromosome = []
-# Generating population and finding the max possible fitness value in a generation
-for i in range(NO_OF_ITERATION):
-	fitnessScore = fitnessAll(population) # Calculate fitness of population
-	# print (fitnessScore)
-	# print (population)
-	bestFitness = findBestFitness(fitnessScore)
-	if(all_time_best_fitness < bestFitness[0]):
-		all_time_best_fitness = bestFitness[0]
-		all_time_best_chromosome = population[bestFitness[1]]
-	print ('Generation : ' + str(i) + ' Best fitness value'  + str(bestFitness) + ' Chromosome :' + str(population[bestFitness[1]]))
-	population = nextGeneration(population,fitnessScore)
 
-print ('All time best fitness over the generation : ' + str(all_time_best_fitness))
-print ('All time best chromosome : ' + str(all_time_best_chromosome))
-
-day = {}
-for key in all_time_best_chromosome:
-	c = []
-	day[key//13] = c
-
-for key in all_time_best_chromosome:
-	for keyInChromosome in range(len(all_time_best_chromosome[key])):
-		c = day[key//13]
-		c.append((key%13,all_time_best_chromosome[key][keyInChromosome]))
-		day[key//13] = c
-
-print (day)
+mainInput() # to take the input
+AlgorithmToGenerateInterviews()
