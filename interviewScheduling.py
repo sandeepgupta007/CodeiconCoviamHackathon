@@ -11,6 +11,7 @@
 import random
 import sys
 import bisect
+import copy
 
 # Reading from input file
 sys.stdin = open('in','r')
@@ -46,7 +47,7 @@ def generatePopulation():
 	DNA is used to generate the intial population.
 	ONE_INTERVIEW_TIME - Amount of time given to each interview 0.5 for 1/2 hour or for 2 hrs give 2. (Similarly)
 	Assuming 1hr interviewTime only. (for now)
-	and 13hrs per day taking the day to be from 9AM to 10PM (interview can be taken place.)
+	and 13hrs per day taking the day to be from 9AM to 9PM (interview can be taken place.)
 '''
 def DNA():
 	# chromosome = []*day*13
@@ -54,7 +55,7 @@ def DNA():
 	CHROMOSOME_SIZE = 0
 	chromosome = {}
 	# print (DAYS)
-	for i in range(int((DAYS+1)*13*ONE_INTERVIEW_TIME)):
+	for i in range(int((DAYS+1)*(12*ONE_INTERVIEW_TIME+1))):
 		chromosome[i] = []
 	# print (chromosome)
 	#distributing the HR over a time period.
@@ -66,13 +67,13 @@ def DNA():
 			hrPairCandidate.append(key)
 			hrPairCandidate.append(-1)
 			# print ((day-1)*13 + fromTime)
-			eachHourChromosome = chromosome[(day-1)*13*ONE_INTERVIEW_TIME + fromTime]
+			eachHourChromosome = chromosome[(day-1)*(int(12*ONE_INTERVIEW_TIME)+1) + fromTime]
 			eachHourChromosome.append(hrPairCandidate)
-			chromosome[(day-1)*13 + fromTime] = eachHourChromosome
+			chromosome[(day-1)*(int(12*ONE_INTERVIEW_TIME)+1) + fromTime] = eachHourChromosome
 
 	# For memory efficiency - No HR available for this time slot.
 	# print (chromosome)
-	for i in range(int((DAYS+1)*13*ONE_INTERVIEW_TIME)):
+	for i in range(int((DAYS+1)*(12*ONE_INTERVIEW_TIME+1))):
 		if(len(chromosome[i]) == 0):
 			chromosome.pop(i,None)
 		else:
@@ -184,7 +185,7 @@ def scoringAccordingLeastDays(chromosome):
 			if(chromosome[key][keyInChromosome][1] != -1):
 				flag = 1
 		if(flag == 1):
-			day[key//13] = 1
+			day[key//(int(12*ONE_INTERVIEW_TIME)+1)] = 1
 	
 	for i in day:
 		if(i == 0):		
@@ -197,7 +198,7 @@ def scoringAccordingBestDayCandidate(chromosome):
 	for key in chromosome:
 		for keyInChromosome in range(len(chromosome[key])):
 			if(chromosome[key][keyInChromosome][1] != -1):
-				if(key//13 == int(CANDIDATE[chromosome[key][keyInChromosome][1]][4])):
+				if(key//(int(12*ONE_INTERVIEW_TIME)+1) == int(CANDIDATE[chromosome[key][keyInChromosome][1]][4])):
 					score += 5
 	return score
 
@@ -210,26 +211,27 @@ def fitnessAll(population):
 
 	return listOfFitness
 
-#fitness of a Chromosome
+# Fitness of a Chromosome
 # A lot to be done for this function.
 def fitness(chromosome):
 	score = 0
 	for key in chromosome:
 		for keyInChromosome in chromosome[key]:
 			if(keyInChromosome[1] != -1):
-				score += scoreAccordingCandidate(keyInChromosome[1],key%13)
+				score += scoreAccordingCandidate(keyInChromosome[1],key%(int(12*ONE_INTERVIEW_TIME)+1))
 
 	score += scoringAccordingInterviewDistribution(chromosome)
 	score += scoringAccordingLeastDays(chromosome)
 	score += scoringAccordingBestDayCandidate(chromosome)
 	return score
 
-# One point Crossover
+
+# Two point Crossover
 def crossover(parentA,parentB):
 	if(CANDIDATE_COUNT <= 2):
 		return (parentA,parentB)
 
-	startCrossOverPoint = random.randrange(0,CANDIDATE_COUNT//2,1)
+	startCrossOverPoint = random.randrange(0,CANDIDATE_COUNT,1)
 	crossoverPoint = random.randrange(startCrossOverPoint,CANDIDATE_COUNT,1)
 	# print (str(crossoverPoint) + ' ' + str(startCrossOverPoint) +  ' ' + str(parentA) + ' ' + str(parentB))
 	for i in range(startCrossOverPoint,crossoverPoint):
@@ -271,12 +273,12 @@ def crossover(parentA,parentB):
 		print (' Because of crossover')
 		exit()
 	# print (str(parentA) + ' ' + str(parentB))
-	return (parentA,parentB)
+	return [parentA,parentB]
 
 def listOfcommulativeFitness(fitness):
 	cummulativeFitness = []
 	for i in range(len(fitness)+1):
-		if(i == 0):
+		if (i == 0):
 			cummulativeFitness.append(0)
 		else:
 			cummulativeFitness.append(cummulativeFitness[i-1] + fitness[i-1])
@@ -294,8 +296,8 @@ def selection(cummulativeFitness):
 	return index
 
 
-def nextGeneration(population,fitness):
-	cummulativeFitness = listOfcommulativeFitness(fitness)
+def nextGeneration(population,fitnessScore):
+	cummulativeFitness = listOfcommulativeFitness(fitnessScore)
 	# half of population because each time 2 children will be generated with two parents
 	# print (cummulativeFitness)
 	nextGenerationPopulation = []
@@ -305,28 +307,49 @@ def nextGeneration(population,fitness):
 		# print ('index of next generation selection' + str(parentAIndex) + ' ' + str(parentBIndex))
 		parentA = population[parentAIndex]
 		parentB = population[parentBIndex]
-		children = crossover(parentA,parentB) 
+
+		copyParentA = copy.deepcopy(parentA)
+		copyParentB = copy.deepcopy(parentB)
+
+		children = crossover(parentA,parentB)
+
+		# fitest one moves to the above generation
+		if(fitness(copyParentA) > fitness(children[0])):
+			children[0] = copyParentA
+		if(fitness(copyParentB) > fitness(children[1])):
+			children[1] = copyParentB
 		# print(children)
+
+
+		copyChildrenA = copy.deepcopy(children[0])
+		copyChildrenB = copy.deepcopy(children[1])
+
 		childrenA = mutation(children[0])
 		childrenB = mutation(children[1])
-		
+
+		if(fitness(copyChildrenA) < fitness(childrenA)):
+			copyChildrenA = childrenA
+
+		if(fitness(copyChildrenB) < fitness(childrenB)):
+			copyChildrenB = childrenB
+
 		# delete this once mutation functions is uncommented
 		# childrenA = children[0]
 		# childrenB = children[1]
 
-		nextGenerationPopulation.append(childrenA)
-		nextGenerationPopulation.append(childrenB)
+		nextGenerationPopulation.append(copyChildrenA)
+		nextGenerationPopulation.append(copyChildrenB)
 
 	# print (' ***** ')
 	return nextGenerationPopulation
 
 # Finding index with max possible fitness value of a generation
-def findBestFitness(fitness):
+def findBestFitness(fitnessScore):
 	maxScore = -1
 	maxIndex = -1
-	for i in range(len(fitness)):
-		if(fitness[i] > maxScore):
-			maxScore = fitness[i]
+	for i in range(len(fitnessScore)):
+		if(fitnessScore[i] > maxScore):
+			maxScore = fitnessScore[i]
 			maxIndex = i
 	return (maxScore,maxIndex)
 
@@ -387,6 +410,7 @@ def mutation(chromosome):
 		print ('Because of mutation')
 		exit()
 	return chromosome
+
 
 ''' 
 	Taking input from console
@@ -486,14 +510,14 @@ def AlgorithmToGenerateInterviews():
 	day = {}
 	for key in all_time_best_chromosome:
 		c = []
-		day[key//13] = c
+		day[key//(int(12*ONE_INTERVIEW_TIME)+1)] = c
 
 	for key in all_time_best_chromosome:
 		for keyInChromosome in range(len(all_time_best_chromosome[key])):
-			c = day[key//13]
+			c = day[key//(int(12*ONE_INTERVIEW_TIME)+1)]
 			if(all_time_best_chromosome[key][keyInChromosome][1] != -1):
-				c.append((key%13,all_time_best_chromosome[key][keyInChromosome]))
-				day[key//13] = c
+				c.append((key%(int(12*ONE_INTERVIEW_TIME)+1),all_time_best_chromosome[key][keyInChromosome]))
+				day[key//(int(12*ONE_INTERVIEW_TIME)+1)] = c
 
 	print (day)
 
