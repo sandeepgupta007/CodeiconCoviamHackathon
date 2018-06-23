@@ -5,7 +5,7 @@ Using automatic scheduling so as to minimize the manual work for scheduling of i
 
 This repository uses Genetic Algorithm that evolves and generates a most optimal solution for this problem.
 
-though I have tried my best to write the code which is self explanatory but if still there are some portion of code which is tough to do please comment them down and I'll change that too.
+though I have tried my best to write the code which is self explanatory but if still there are some portion of code which you find tough, please comment them down and I'll change that too.
 
 A lot can be imporved on this algorithm, I need suggestion about improving fitness function.
 
