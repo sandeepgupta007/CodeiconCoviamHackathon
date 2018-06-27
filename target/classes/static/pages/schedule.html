@@ -1,0 +1,55 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#!/candidate-schedule">Interview Scheduler</a>
+    <div class="" style="padding-left: 75%">
+        <button class="btn btn-outline-success">Log out</button>
+    </div>
+</nav>
+<br>
+
+<div class="jumbotron">
+    <div class="container">
+        <form class="form-row">
+            <input type="submit" value="Schedule Interview" class="btn btn-outline-success" ng-click="scheduleById()">
+            <br>
+            <br>
+            <center> <h3> Basic Details </h3> </center>
+            <br>
+            <table class="table">
+                <tr>
+                    <td><h5> Start Date </h5> </td>
+                    <td>{{schedule.startDate}}</td>
+                </tr>
+                <tr>
+                    <td> <h5> No Of Days </h5> </td>
+                    <td>{{schedule.numberOfDays}}</td>
+                </tr>
+                <tr>
+                    <td> <h5> Interview Duration </h5> </td>
+                    <td>{{schedule.interviewDuration}}</td>
+                </tr>
+            </table>
+            <br>
+            <hr>
+            <center> <h3> Candidates </h3> </center>
+            <br>
+                <table class="table">
+                    <tr>
+                        <th> Candidate Name </th>
+                        <th> Candidate Preference </th>
+                    </tr>
+                    <tr ng-repeat="item in schedule.candidateDtoList">
+                        <td> {{item.name}} </td>
+                        <td> {{item.preference}} </td>
+                    </tr>
+                </table>
+            <br><hr>
+                <center> <h3> Panel of Interviewers </h3> </center>
+            <br>
+                    <table class="table">
+                        <tr ng-repeat="item in schedule.interviewerDtoList">
+                            <td> {{item.name}} </td>
+                        </tr>
+                    </table>
+        </form>
+    </div>
+</div>

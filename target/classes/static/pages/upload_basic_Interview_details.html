@@ -1,0 +1,40 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#!/candidate-schedule">Interview Scheduler</a>
+ <div class="" style="padding-left: 75%">
+ 	<button class="btn btn-outline-success">Log out</button>
+ </div>
+</nav>
+<br>
+
+<div class="jumbotron">
+	<div class="container">
+		<center> <h1> Create an Interview </h1> </center>
+		<h4> Step 1 </h4>
+		<br>
+		<form class="form-row" ng-submit="createInterview()">
+			<div class="form-group col-6">
+				<label>Interview Name</label>
+				<input type="text" class="form-control" id="interview_name">
+			</div>
+			<div class="form-group col-6">
+				<label>Start Date</label>
+				<input type="date" class="form-control" id="start_date">
+			</div>
+			<div class="form-group col-6">
+				<label>Number of Days </label>
+				<input type="number" class="form-control" id="number_of_days">
+			</div>
+			<div class="form-group col-6">
+				<label>Interviewer Duration</label>
+				<input type="number" class="form-control" id="interviewer_duration">
+			</div>
+
+			<div class="" style="padding-left: 75%">
+				<button type="submit" value="Process" class="btn btn-outline-success"> Proceed to Upload files</button>
+			</div>
+		</form>
+
+
+
+	</div>
+</div>

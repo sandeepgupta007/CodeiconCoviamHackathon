@@ -1,0 +1,38 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#!/candidate-schedule">Interview Scheduler</a>
+ <div class="" style="padding-left: 75%">
+ 	<button class="btn btn-outline-success">Log out</button>
+ </div>
+</nav>
+<br>
+
+<div class="jumbotron">
+	<div class="container">
+		<center> <h1> Upload File </h1> </center>
+		<h3> Step 2 </h3>
+		<iframe width="250" height="50" border="0" name="dummyframe" id="dummyframe" style="margin-left:100px;"></iframe>
+		<form class="form-row" id="upload-file-candidates" enctype="multipart/form-data" method="post" action="{{urlCandidate}}" target="dummyframe">
+			<div class="form-group col-12">
+				<label>Upload Candidate File</label>
+				<input type="file" name="upload_candidate_file" id="upload_candidate_file" class="form-control-file">
+			</div>
+			<div class="form-group col-6">
+				<input type="submit" value="Upload Candidate File" class="btn btn-outline-success">
+			</div>
+
+		</form>
+		<hr>
+		<iframe width="250" height="50" border="0" name="dummyframe1" id="dummyframe1" style="margin-left:100px;" ></iframe>
+		<form class="form-row" enctype="multipart/form-data" method="post" action="{{urlInterview}}" target="dummyframe1">
+			<div class="form-group col-12">
+				<label>Upload Interviewer File</label>
+				<input type="file" name="upload_interviewer_file" class="form-control-file">
+			</div>
+			<div class="form-group col-6">
+				<input type="submit" value="Upload Interviewer file" class="btn btn-outline-success">
+			</div>
+		</form>
+		<center> <button ng-show="!loading" class="btn btn-outline-success" ng-click="sendEmailsBefore()"> Send Preference Email </button></center>
+		<center><button ng-show="loading" class="btn btn-sm btn-warning"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span> Loading...</button></center>
+	</div>
+</div>

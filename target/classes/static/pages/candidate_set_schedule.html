@@ -1,0 +1,55 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#!/candidate-schedule">Interview Scheduler</a>
+ <div class="" style="padding-left: 75%">
+ 	<button class="btn btn-outline-success">Log out</button>
+ </div>
+</nav>
+
+<div class="jumbotron">
+<form class="form-row" ng-submit="setCandidatePreference()">
+	<input type="text" name="" hidden="hidden" value="{{candidate_email}}" id="candidate_email_from_preference">
+	<input type="number" id="candidate_preferred_date" required="required">
+	<div class="form-group col-6">
+		<label>Preference 1</label>
+		<select id="pref1select" class="preferenceSelect form-control" required="required">
+		    <option value="M">Morning</option>
+		    <option value="A">Afternoon</option>
+		    <option value="E">Evening</option>
+		    <option value="N">Night</option>
+		</select>
+	</div>
+	
+	<div class="form-group col-6">
+		<label>Preference 2</label>
+		<select id="pref2select" class="preferenceSelect form-control" required="required">
+		    <option value="M">Morning</option>
+		    <option value="A">Afternoon</option>
+		    <option value="E">Evening</option>
+		    <option value="N">Night</option>
+		</select>
+	</div>
+	
+	<div class="form-group col-6">
+		<label>Preference 3</label>
+		<select id="pref3select" class="preferenceSelect form-control" required="required">
+		    <option value="M">Morning</option>
+		    <option value="A">Afternoon</option>
+		    <option value="E">Evening</option>
+		    <option value="N">Night</option>
+		</select>
+	</div>
+	
+	<div class="form-group col-6">
+		<label>Preference 4</label>
+		<select id="pref4select" class="preferenceSelect form-control" required="required">
+		    <option value="M">Morning</option>
+		    <option value="A">Afternoon</option>
+		    <option value="E">Evening</option>
+		    <option value="N">Night</option>
+		</select>
+	</div>
+	<div>
+		<input type="submit" name="" value="Submit Your Choice" class="btn btn-outline-success">
+	</div>
+</form>
+</div>
